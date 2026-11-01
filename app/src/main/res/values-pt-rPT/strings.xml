@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE resources [
     <!ENTITY nbsp "&#160;">
 ]>
@@ -11,7 +11,8 @@
     <!-- ################################### runtime errors #################################### -->
 
     <string name="error__pref_validation__relay_host_not_set">O anfitrião do relay não está definido</string>
-    <string name="error__pref_validation__relay_password_not_set">A palavra-passe do relay não está definida</string>
+    <string name="error__pref_validation__relay_password_not_set">
+        A palavra-passe do relay não está definida</string>
     <string name="error__pref_validation__ssh_host_not_set">O anfitrião SSH não está definido</string>
     <string name="error__pref_validation__ssh_password_not_set">A palavra-passe SSH não está definida</string>
     <string name="error__pref_validation__ssh_key_not_set">A chave privada SSH não está definida</string>
@@ -24,7 +25,8 @@
         Não foi possível resolver o endereço %s</string>
 
     <string name="error__etc__prefix">Erro: %s</string>
-    <string name="error__etc__hot_line_lost">O buffer perdeu algumas mensagens importantes devido a novas linhas</string>
+    <string name="error__etc__hot_line_lost">
+        O buffer perdeu algumas mensagens importantes devido a novas linhas</string>
     <string name="error__etc__no_hot_buffers">De momento não há buffers com mensagens importantes</string>
     <string name="error__etc__not_connected">Sem ligação</string>
     <string name="error__etc__cannot_share_to_empty_buffer_list">A lista de buffers está vazia</string>
@@ -66,7 +68,7 @@
     <string name="ui__snackbars__upload_complete">Envio concluído</string>
 
     <!-- ####################################################################################### -->
-    <!-- ######################################### menu ######################################## -->
+    <!-- ###################################### main menu ###################################### -->
     <!-- ####################################################################################### -->
 
     <string name="menu__search">Pesquisar</string>
@@ -134,12 +136,10 @@
     <!-- the is the title for the summary notification, it is visible to users -->
     <plurals name="notifications__hot_summary__messages">
         <item quantity="one">%d mensagem</item>
-        <item quantity="many">%d mensagens</item>
         <item quantity="other">%d mensagens</item>
     </plurals>
     <plurals name="notifications__hot_summary__in_buffers">
         <item quantity="one">&nbsp;em %d buffer</item>
-        <item quantity="many">&nbsp;em %d buffers</item>
         <item quantity="other">&nbsp;em %d buffers</item>
     </plurals>
 
@@ -147,22 +147,18 @@
     visible to users in any way as they instead see messages from MessagingStyle -->
     <plurals name="notifications__hot__text">
         <item quantity="one">Nova mensagem em %2$s</item>
-        <item quantity="many">%1$d novas mensagens em %2$s</item>
         <item quantity="other">%1$d novas mensagens em %2$s</item>
     </plurals>
 
     <plurals name="notifications__MessagingStyle__missing_users">
-        <item quantity="one">(utilizador desconhecido)</item>
-        <item quantity="many">(utilizadores desconhecidos)</item>
+        <item quantity="one" tools:ignore="ImpliedQuantity">(utilizador desconhecido)</item>
         <item quantity="other">(utilizadores desconhecidos)</item>
     </plurals>
     <string name="notifications__MessagingStyle__missing_messages_1">(mensagem não obtida)</string>
     <plurals name="notifications__MessagingStyle__missing_messages">
-        <item quantity="one">(mensagem não obtida)</item>
-        <item quantity="many">(%d mensagens não obtidas)</item>
+        <item quantity="one" tools:ignore="ImpliedQuantity">(mensagem não obtida)</item>
         <item quantity="other">(%d mensagens não obtidas)</item>
     </plurals>
-
     <!-- this is displayed when you reply to messages from notification itself -->
     <string name="notifications__MessagingStyle__me">Eu</string>
 
@@ -176,11 +172,9 @@
 
     <plurals name="dialog__nicklist__n_users">
         <item quantity="one">%1$d utilizador</item>
-        <item quantity="many">%1$d utilizadores</item>
         <item quantity="other">%1$d utilizadores</item>
     </plurals>
     <string name="dialog__nicklist__user_away">%s (ausente)</string>
-
 
     <string name="dialog__copy__title">Copiar</string>
     <string name="dialog__copy__button_select_text">Selecionar texto</string>
@@ -247,7 +241,6 @@
 
     <string name="dialog__certificate__invalid_hostname__title">
         Nome de anfitrião inválido</string>
-
     <string name="dialog__certificate__invalid_hostname__text"><![CDATA[
         Está a tentar ligar-se a <strong>%1$s</strong>
         mas o certificado só é válido para os seguintes anfitriões: %2$s
@@ -319,7 +312,6 @@
         <br>Impressão digital SHA256 da chave %2$s:
         <br><b>%3$s</b>
     ]]></string>
-
     <string name="dialog__ssh__server_unknown__button_accept_key">Aceitar chave do servidor</string>
     <string name="dialog__ssh__server_unknown__button_reject_key">Rejeitar</string>
 
@@ -330,7 +322,8 @@
     <string name="dialog__ssh__server_changed_key__text"><![CDATA[
         <b>⚠ Aviso:</b> é possível que alguém esteja a tentar intercetar esta ligação!
         <br>
-        <br>O servidor em <b>%1$s</b> é conhecido, mas a sua chave não corresponde à chave que aceitou anteriormente.
+        <br>O servidor em <b>%1$s</b> é conhecido,
+        mas a sua chave não corresponde à chave que aceitou anteriormente.
         <br>
         <br>Impressão digital SHA256 da chave %2$s:
         <br><b>%3$s</b>
@@ -357,7 +350,8 @@
 
     <string name="pref__FullScreenEditTextPreference__menu_save">Guardar</string>
     <string name="pref__FullScreenEditTextPreference__menu_reset_to_default">Predefinição</string>
-    <string name="pref__FullScreenEditTextPreference__discard_changes_prompt">Descartar alterações?</string>
+    <string name="pref__FullScreenEditTextPreference__discard_changes_prompt">
+        Descartar alterações?</string>
     <string name="pref__FullScreenEditTextPreference__discard_changes_cancel">Cancelar</string>
     <string name="pref__FullScreenEditTextPreference__discard_changes_discard">Descartar</string>
 
@@ -388,6 +382,9 @@
 
     <!-- ############################### connection: ssl settings ############################## -->
 
+    <!-- note that we prefer “ssl” over “tsl” as it's used throughout the app
+    and also by weechat itself, as in `/relay add ssl.weechat` -->
+
     <string name="pref__connection__ssl_group">Definições de SSL</string>
 
     <string name="pref__connection__ssl__require_certificate_pin">
@@ -400,14 +397,14 @@
     <string name="pref__ClearCertPreference__1_entries">Um certificado fidedigno</string>
     <plurals name="pref__ClearCertPreference__n_entries">
         <item quantity="one">Um certificado fidedigno</item>
-        <item quantity="many">%s certificados fidedignos</item>
         <item quantity="other">%s certificados fidedignos</item>
     </plurals>
     <string name="pref__ClearCertPreference__prompt">Limpar certificados?</string>
     <string name="pref__ClearCertPreference__button_clear">Limpar</string>
     <string name="pref__ClearCertPreference__button_cancel">Cancelar</string>
     <string name="pref__ClearCertPreference__success_cleared">Certificados limpos</string>
-    <string name="pref__ClearCertPreference__error_could_not_clear">Não foi possível limpar os certificados</string>
+    <string name="pref__ClearCertPreference__error_could_not_clear">
+        Não foi possível limpar os certificados</string>
 
     <string name="pref__connection__ssl__client_certificate">
         Certificado de cliente</string>
@@ -466,7 +463,6 @@
     <string name="pref__ClearKnownHostsPreference__0_entries">Sem entradas</string>
     <plurals name="pref__ClearKnownHostsPreference__n_entries">
         <item quantity="one">%s entrada</item>
-        <item quantity="many">%s entradas</item>
         <item quantity="other">%s entradas</item>
     </plurals>
     <string name="pref__ClearKnownHostsPreference__prompt">Limpar anfitriões conhecidos?</string>
@@ -722,7 +718,6 @@
     <string name="pref__buttons__show_paperclip">Mostrar botão de clipe</string>
 
     <string name="pref__buttons__paperclip__action_1">Toque curto no botão de clipe</string>
-
     <string name="pref__buttons__paperclip__action_2">Toque longo no botão de clipe</string>
     <string name="pref__buttons__paperclip__actions__none">
         Desativado</string>
@@ -744,7 +739,6 @@
         pode na mesma anexar ficheiros através do menu de opções.</string>
 
     <string name="pref__buttons__volume__title">Botões de volume</string>
-
     <string name="pref__buttons__volume__actions__none">Nenhuma ação especial</string>
     <string name="pref__buttons__volume__actions__change_text_size">Alterar o tamanho do texto</string>
     <string name="pref__buttons__volume__actions__navigate_input_history">Navegar no histórico de entrada</string>
@@ -809,7 +803,7 @@
         remova a estratégia para o anfitrião universal “*” ou defina-a como “none”.
         <a href="https://github.com/ubergeek42/weechat-android/wiki/Media-preview">Saber mais</a>
     ]]></string>
-
+    
     <string name="pref__media_preview__strategies">
         Estratégias</string>
     <string name="pref__StrategyPreference__summary">
@@ -824,35 +818,34 @@
     <string name="pref__StrategyPreference__0_line_filters_set">filtros de linhas não definidos</string>
     <plurals name="pref__StrategyPreference__n_line_filters_set">
         <item quantity="one">%d filtro de linhas definido</item>
-        <item quantity="many">%d filtros de linhas definidos</item>
         <item quantity="other">%d filtros de linhas definidos</item>
     </plurals>
     <string name="pref__StrategyPreference__strategies_not_loaded">Nenhuma estratégia carregada</string>
     <string name="pref__StrategyPreference__strategies_list">Estratégias: %s</string>
-
+    
     <string name="pref__media_preview__advanced_group">Avançado</string>
-
+    
     <string name="pref__media_preview__maximum_body_size">Limite de tamanho da transferência</string>
     <string name="pref__media_preview__maximum_body_size_summary">%s MB</string>
-
+    
     <string name="pref__media_preview__image_disk_cache_size">
         Cache em disco</string>
     <string name="pref__media_preview__image_disk_cache_size_summary">
         %s MB; tem efeito após reiniciar</string>
-
+    
     <string name="pref__media_preview__success_cooldown">
         Validade de sucesso</string>
     <string name="pref__media_preview__success_cooldown_summary">
         %s horas. A aplicação vai considerar uma imagem obtida com sucesso como disponível,
         seja a partir da cache ou da web,
         durante o período especificado.</string>
-
+    
     <string name="pref__media_preview__thumbnail_width">Largura das miniaturas</string>
-
+    
     <string name="pref__media_preview__thumbnail_min_height">Altura mínima das miniaturas</string>
-
+    
     <string name="pref__media_preview__thumbnail_max_height">Altura máxima das miniaturas</string>
-
+    
     <!-- ####################################################################################### -->
     <!-- ####################################### sharing ####################################### -->
     <!-- ####################################################################################### -->
@@ -920,12 +913,12 @@
     <!-- ####################################################################################### -->
 
     <string name="pref__about_group">Acerca de</string>
-
+    
     <string name="pref__about__created_by">criado por ubergeek42</string>
-
+    
     <string name="pref__about__build_id">ID da compilação %s</string>
     <string name="pref__about__unknown_version_id">ID de versão desconhecido</string>
-
+    
     <string name="pref__about__used_libraries">
         \nEste projeto usa as seguintes bibliotecas:
         \n
