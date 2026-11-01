@@ -12,9 +12,11 @@ import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.protocol.Hdata
+import com.ubergeek42.weechat.relay.protocol.Infolist
 import com.ubergeek42.weechat.relay.protocol.RelayObject
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
 
 
 const val LINE_MISSING = -1L
@@ -26,14 +28,15 @@ object BufferList {
     ////////////////////////////////////////////////////////////////////////////////////// lifecycle
 
     @JvmStatic @WorkerThread fun onServiceAuthenticated() {
-        defaultMessageHandlers.forEach { (id, handler) -> addMessageHandler(id, handler) }
+        setupDefaultMessageHandlers()
 
         SendMessageEvent.fire(listOf(
-                BufferSpec.listBuffersRequest,
-                LastLinesSpec.request,          // see Lines.shouldAddSquiggleOnNewLastLine
-                LastReadLineSpec.request,
-                HotlistSpec.request,
-                if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync",
+            OptionsSpec.dayChangeRequest,
+            BufferSpec.listBuffersRequest,
+            LastLinesSpec.request,          // see Lines.shouldAddSquiggleOnNewLastLine
+            LastReadLineSpec.request,
+            HotlistSpec.request,
+            if (P.optimizeTraffic) "sync * buffers,upgrade" else "sync",
         ).joinToString("\n"))
     }
 
@@ -63,28 +66,43 @@ object BufferList {
 
     /////////////////////////////////////////////////////////////////////////////////////// handlers
 
-    private val handlers = ConcurrentHashMap<String, HdataHandler>()
-    private var handlerIdCounter = 0
+    private val handlers = ConcurrentHashMap<String, RelayObjectHandler<RelayObject>>()
+    private val handlerIdCounter = AtomicInteger()
 
-    @AnyThread private fun addMessageHandler(id: String, handler: HdataHandler) {
-        handlers[id] = handler
+    @AnyThread private fun <T : RelayObject> addMessageHandler(
+        type: Class<T>,
+        vararg ids: String,
+        handler: RelayObjectHandler<T>,
+    ) {
+        val relayObjectHandler = RelayObjectHandler<RelayObject> { obj, id ->
+            if (type.isInstance(obj)) handler.handleMessage(type.cast(obj)!!, id)
+            else kitty.warn(
+                "id %s: expected %s, got %s",
+                id, type.simpleName, obj.javaClass.simpleName
+            )
+        }
+        ids.forEach { handlers[it] = relayObjectHandler }
     }
 
-    @AnyThread private fun removeMessageHandler(id: String) {
-        handlers.remove(id)
-    }
+    @AnyThread private inline fun <reified T : RelayObject> addMessageHandler(
+        vararg ids: String,
+        handler: RelayObjectHandler<T>,
+    ) = addMessageHandler(T::class.java, *ids, handler = handler)
 
-    @AnyThread fun addOneOffMessageHandler(handler: HdataHandler): String {
-        val id = handlerIdCounter++.toString()
-        addMessageHandler(id) { obj, _ ->
-            removeMessageHandler(id)
+    @AnyThread fun <T : RelayObject> addOneOffMessageHandler(type: Class<T>, handler: RelayObjectHandler<T>): String {
+        val id = handlerIdCounter.getAndIncrement().toString()
+        addMessageHandler(type, id) { obj, _ ->
+            handlers.remove(id)
             handler.handleMessage(obj, id)
         }
         return id
     }
 
+    @AnyThread inline fun <reified T : RelayObject> addOneOffMessageHandler(handler: RelayObjectHandler<T>): String =
+        addOneOffMessageHandler(T::class.java, handler)
+
     @JvmStatic @WorkerThread fun handleMessage(obj: RelayObject?, id: String) {
-        if (obj is Hdata) {
+        if (obj != null) {
             handlers[id]?.handleMessage(obj, id) ?: kitty.warn("no handler for message id: %s", id)
         }
     }
@@ -155,27 +173,17 @@ object BufferList {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private val defaultMessageHandlers = setupDefaultMessageHandlers()
-
-
-    fun interface HdataHandler {
-        fun handleMessage(obj: Hdata, id: String)
+    fun interface RelayObjectHandler<T : RelayObject> {
+        fun handleMessage(obj: T, id: String)
     }
 
 
-    @Suppress("IfThenToElvis")
-    private fun setupDefaultMessageHandlers(): Map<String, HdataHandler> {
-        val handlers = mutableMapOf<String, HdataHandler>()
-
-        fun add(vararg ids: String, handler: HdataHandler) {
-            ids.forEach { id -> handlers[id] = handler }
-        }
-
+    private fun setupDefaultMessageHandlers() {
         ////////////////////////////////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////////////////// buffer list
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        add("listbuffers") { obj, _ ->
+        addMessageHandler<Hdata>("listbuffers") { obj, _ ->
             val buffers = CopyOnWriteArrayList<Buffer>()
 
             obj.forEach { entry ->
@@ -193,7 +201,7 @@ object BufferList {
             Hotlist.makeSureHotlistDoesNotContainInvalidBuffers()
         }
 
-        add("_buffer_opened") { obj, _ ->
+        addMessageHandler<Hdata>("_buffer_opened") { obj, _ ->
             obj.forEach { entry ->
                 val buffer = BufferSpec(entry).toBuffer(openWhileRunning = true)
                 buffers.add(buffer)
@@ -202,7 +210,7 @@ object BufferList {
             notifyBuffersChanged()  // todo this wasn't present before -- why?
         }
 
-        add("renumber") { obj, _ ->
+        addMessageHandler<Hdata>("renumber") { obj, _ ->
             obj.forEachExistingBuffer { spec, buffer ->
                 val number = spec.number
 
@@ -216,7 +224,7 @@ object BufferList {
         }
 
 
-        add("_buffer_renamed") { obj, _ ->
+        addMessageHandler<Hdata>("_buffer_renamed") { obj, _ ->
             obj.forEachExistingBuffer { spec, buffer ->
                 buffer.update { fullName = spec.fullName; shortName = spec.shortName }
             }
@@ -225,7 +233,7 @@ object BufferList {
         }
 
 
-        add("_buffer_title_changed") { obj, _ ->
+        addMessageHandler<Hdata>("_buffer_title_changed") { obj, _ ->
             obj.forEachExistingBuffer { spec, buffer ->
                 buffer.update { title = spec.title }
             }
@@ -234,7 +242,7 @@ object BufferList {
         }
 
 
-        add("_buffer_localvar_added", "_buffer_localvar_changed", "_buffer_localvar_removed") {
+        addMessageHandler<Hdata>("_buffer_localvar_added", "_buffer_localvar_changed", "_buffer_localvar_removed") {
                 obj, _ ->
             obj.forEachExistingBuffer { spec, buffer ->
                 buffer.update { type = spec.type }
@@ -244,12 +252,12 @@ object BufferList {
         }
 
 
-        add("_buffer_moved", "_buffer_merged") { _, _ ->
+        addMessageHandler<Hdata>("_buffer_moved", "_buffer_merged") { _, _ ->
             SendMessageEvent.fire(BufferSpec.renumberRequest)
         }
 
 
-        add("_buffer_hidden", "_buffer_unhidden") { obj, id ->
+        addMessageHandler<Hdata>("_buffer_hidden", "_buffer_unhidden") { obj, id ->
             val hidden = id == "_buffer_hidden"
 
             obj.forEachExistingBuffer { _, buffer ->
@@ -260,13 +268,18 @@ object BufferList {
         }
 
 
-        add("_buffer_closing") { obj, _ ->
+        addMessageHandler<Hdata>("_buffer_closing") { obj, _ ->
             obj.forEachExistingBuffer { _, buffer ->
                 buffers.remove(buffer)
                 buffer.onBufferClosed()
             }
 
             notifyBuffersChanged()
+        }
+
+
+        addMessageHandler<Infolist>("options") { obj, _ ->
+            OptionsSpec.init(obj)
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////
@@ -276,7 +289,7 @@ object BufferList {
         var bufferToLastReadLine = LongSparseArray<Long>()
         var lastHotlistUpdateTime = 0L
 
-        add("last_read_lines") { obj, _ ->
+        addMessageHandler<Hdata>("last_read_lines") { obj, _ ->
             bufferToLastReadLine = LongSparseArray<Long>().apply {
                 obj.forEach { entry ->
                     val spec = LastReadLineSpec(entry)
@@ -285,7 +298,7 @@ object BufferList {
             }
         }
 
-        add("last_lines") { obj, _ ->
+        addMessageHandler<Hdata>("last_lines") { obj, _ ->
             class PointerPair(var lastPointer: Long? = null, var lastVisiblePointer: Long? = null)
 
             val bufferToPointers = mutableMapOf<Long, PointerPair>()
@@ -304,7 +317,7 @@ object BufferList {
             }
         }
 
-        add("hotlist") { obj, _ ->
+        addMessageHandler<Hdata>("hotlist") { obj, _ ->
             val bufferToHotlistSpec = LongSparseArray<HotlistSpec>()
 
             obj.forEach { entry ->
@@ -333,7 +346,7 @@ object BufferList {
         ////////////////////////////////////////////////////////////////////////////////////// nicks
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        add("nicklist", "_nicklist") { obj, _ ->
+        addMessageHandler<Hdata>("nicklist", "_nicklist") { obj, _ ->
             val updates = mutableMapOf<Long, MutableList<Nick>>()
 
             obj.forEach { entry ->
@@ -351,7 +364,7 @@ object BufferList {
             }
         }
 
-        add("_nicklist_diff") { obj, _ ->
+        addMessageHandler<Hdata>("_nicklist_diff") { obj, _ ->
             var buffer: Buffer? = null
 
             obj.forEach { entry ->
@@ -376,7 +389,7 @@ object BufferList {
         ////////////////////////////////////////////////////////////////////////////////////// lines
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        add("_buffer_line_added") { obj, _ ->
+        addMessageHandler<Hdata>("_buffer_line_added") { obj, _ ->
             obj.forEach { entry ->
                 val spec = LineSpec(entry)
                 findByPointer(spec.bufferPointer)?.let { buffer ->
@@ -386,14 +399,14 @@ object BufferList {
             }
         }
 
-        add("_buffer_cleared") { obj, _ ->
+        addMessageHandler<Hdata>("_buffer_cleared") { obj, _ ->
             obj.forEachExistingBuffer { _, buffer ->
                 buffer.onLinesCleared()
             }
         }
 
-        add("_buffer_line_data_changed") { obj, _ ->
-            if (!P.handleBufferLineDataChanged) return@add
+        addMessageHandler<Hdata>("_buffer_line_data_changed") { obj, _ ->
+            if (!P.handleBufferLineDataChanged) return@addMessageHandler
 
             obj.forEach { entry ->
                 val spec = LineSpec(entry)
@@ -403,15 +416,13 @@ object BufferList {
                 }
             }
         }
-
-        return handlers
     }
 
     @JvmStatic fun clearPrecomputedLayoutsEtcForAllBuffers() {
         buffers.forEach { it.clearPrecomputedLayoutsEtc() }
     }
 
-    private class LineListingHandler(private val bufferPointer: Long) : HdataHandler {
+    private class LineListingHandler(private val bufferPointer: Long) : RelayObjectHandler<Hdata> {
         override fun handleMessage(obj: Hdata, id: String) {
             findByPointer(bufferPointer)?.let { buffer ->
                 val newLines = ArrayList<Line>(obj.count)

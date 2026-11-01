@@ -10,6 +10,7 @@ import com.ubergeek42.WeechatAndroid.views.imm
 import com.ubergeek42.cats.Kitty
 import com.ubergeek42.cats.Root
 import com.ubergeek42.weechat.relay.connection.Handshake
+import com.ubergeek42.weechat.relay.protocol.Hdata
 import com.ubergeek42.weechat.relay.protocol.RelayObject
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -76,7 +77,7 @@ abstract class TabCompleter(val input: EditText) {
 }
 
 suspend fun queryWeechat(message: String) = suspendCancellableCoroutine<RelayObject> {
-    val handler = BufferList.HdataHandler { obj, _ -> it.resume(obj) }
+    val handler = BufferList.RelayObjectHandler<Hdata> { obj, _ -> it.resume(obj) }
     val id = BufferList.addOneOffMessageHandler(handler)
     Events.SendMessageEvent.fire("($id) $message")
 }
