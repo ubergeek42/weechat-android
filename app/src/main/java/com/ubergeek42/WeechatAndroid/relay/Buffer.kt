@@ -26,7 +26,8 @@ class Buffer @WorkerThread constructor(
     @JvmField var shortName: String = ""
     @JvmField var hidden: Boolean = false
     @JvmField var type = BufferSpec.Type.Other
-    @JvmField var displayDayChange: Boolean = false
+    var displayDayChange: Boolean = false
+        get() = field && OptionsSpec.dayChange
 
     private var notify: Notify = Notify.default
 
