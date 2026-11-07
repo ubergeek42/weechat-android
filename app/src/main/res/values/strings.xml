@@ -663,16 +663,33 @@
     <string name="pref__look_n_feel__timestamp_format_summary">%s (default: HH:mm:ss)</string>
     <string name="error__pref__invalid_timestamp_format">Invalid timestamp format</string>
 
-    <string name="pref__look_n_feel__font">
-        Buffer font</string>
+    <string name="pref__look_n_feel__typeface">
+        Typeface</string>
     <string name="pref__FontPreference__default">Default</string>
     <string name="pref__FontPreference__import_button">Import</string>
     <string name="pref__FontPreference__imported">Imported: %s</string>
+    <string name="pref__FontPreference__imported_with_errors">
+        Imported: %1$s. There were errors while importing some of the fonts</string>
+    <string name="pref__FontPreference__failed_to_import">
+        Failed to import fonts</string>
 
-    <string name="pref__FontPreferenceHelp__summary">
-        Non-monospace fonts will not work well with alignment.
-        Import fonts from the dialog,
-        or put them into one of the following locations:%1$s</string>
+
+    <!-- overridden in -v29 & -v35 -->
+    <string name="pref__FontPreferenceHelp__summary"><![CDATA[
+        Font families and variable fonts are not supported.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Typeface">Learn more</a>
+
+        <br><br>Import fonts from the dialog,
+        or put them into one of the following locations:%1$s
+    ]]></string>
+
+    <!-- This is a very low level option that may be best left untranslated.
+         See https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-feature-settings -->
+    <string name="pref__look_n_feel__font_feature_settings">Font feature settings</string>
+
+    <string name="pref__look_n_feel__line_height">Line height</string>
+
+    <string name="pref__look_n_feel__paragraph_spacing">Paragraph spacing</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->

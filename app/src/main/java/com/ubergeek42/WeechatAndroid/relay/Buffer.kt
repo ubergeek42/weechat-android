@@ -130,7 +130,6 @@ class Buffer @WorkerThread constructor(
     @Synchronized fun addOpenKey(key: String, syncHotlistOnOpen: Boolean) {
         if (openKeys.add(key) == Keys.Change.BecameNotEmpty) {
             BufferList.syncBuffer(this, syncHotlistOnOpen)
-            lines.ensureSpannables()
             BufferList.notifyBuffersChanged()
         }
     }
@@ -138,7 +137,7 @@ class Buffer @WorkerThread constructor(
     @Synchronized fun removeOpenKey(key: String) {
         if (openKeys.remove(key) == Keys.Change.BecameEmpty) {
             BufferList.desyncBuffer(this)
-            lines.invalidateSpannables()
+            lines.clearPrecomputedLayoutsEtc()
             if (P.optimizeTraffic) {
                 // request lines & nicks on the next sync
                 // the previous comment here was stupid
@@ -160,6 +159,7 @@ class Buffer @WorkerThread constructor(
     //     nick completion
     @MainThread @Cat @Synchronized fun addBufferEye(bufferEye: BufferEye) {
         bufferEyes = bufferEyes + bufferEye
+        lines.ensurePrecomputedLayoutsInBackground()
         if (lines.status == Lines.Status.Init) requestMoreLines()
         if (nicks.status == Nicks.Status.Init) BufferList.requestNicklistForBuffer(pointer)
     }
@@ -192,6 +192,10 @@ class Buffer @WorkerThread constructor(
         }
     }
 
+    fun clearPrecomputedLayoutsEtc() {
+        lines.clearPrecomputedLayoutsEtc()
+    }
+
     @Synchronized fun isWatchedByKey(key: String) = watchedKeys.contains(key)
 
     @MainThread @Synchronized fun moveReadMarkerToEnd() {
@@ -209,8 +213,8 @@ class Buffer @WorkerThread constructor(
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @WorkerThread fun replaceLines(newLines: Collection<Line>) {
-        if (isOpen) {
-            newLines.forEach { it.ensureSpannable() }
+        if (bufferEyes.isNotEmpty()) {
+            newLines.forEach { it.ensurePrecomputedLayout() }
         }
 
         synchronized(this) {
@@ -219,7 +223,7 @@ class Buffer @WorkerThread constructor(
    }
 
     @WorkerThread fun replaceLine(line: Line) {
-        if (isOpen) line.ensureSpannable()
+        if (bufferEyes.isNotEmpty()) line.ensurePrecomputedLayout()
 
         synchronized(this) {
             lines.replaceLine(line)
@@ -227,7 +231,7 @@ class Buffer @WorkerThread constructor(
     }
 
     @WorkerThread fun addLineBottom(line: Line) {
-        if (isOpen) line.ensureSpannable()
+        if (bufferEyes.isNotEmpty()) line.ensurePrecomputedLayout()
 
         val notifyHighlight = line.notifyLevel == LineSpec.NotifyLevel.Highlight
         val notifyPm = line.notifyLevel == LineSpec.NotifyLevel.Private
@@ -360,10 +364,10 @@ class Buffer @WorkerThread constructor(
     @MainThread fun onGlobalPreferencesChanged(numberChanged: Boolean) {
         synchronized(this) {
             if (!numberChanged) {
-                lines.invalidateSpannables()
+                lines.clearPrecomputedLayoutsEtc()
                 style++
             }
-            lines.ensureSpannables()
+            lines.ensurePrecomputedLayoutsInBackground()
         }
         bufferEyes.forEach { it.onGlobalPreferencesChanged(numberChanged) }
     }

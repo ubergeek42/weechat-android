@@ -670,16 +670,9 @@
     <string name="pref__look_n_feel__timestamp_format_summary">%s (Standardwert: HH:mm:ss)</string>
     <string name="error__pref__invalid_timestamp_format">Ungültiges Format für Zeitstempel</string>
 
-    <string name="pref__look_n_feel__font">
-        Zeichensatz für Buffer</string>
     <string name="pref__FontPreference__default">Standard</string>
     <string name="pref__FontPreference__import_button">Importieren</string>
     <string name="pref__FontPreference__imported">Importiert: %s</string>
-
-    <string name="pref__FontPreferenceHelp__summary">
-        Nicht-Monospace-Schriftarten funktionieren nicht gut mit der Ausrichtung.
-        Importieren Sie Schriftarten aus dem Dialogfeld,
-        oder kopieren Sie diese an einen der folgenden Orte:%1$s</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->

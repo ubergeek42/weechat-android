@@ -86,6 +86,7 @@ import com.ubergeek42.WeechatAndroid.utils.FriendlyExceptions
 import com.ubergeek42.WeechatAndroid.utils.Network
 import com.ubergeek42.WeechatAndroid.utils.SimpleTransitionDrawable
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix
+import com.ubergeek42.WeechatAndroid.utils.attachDelayedMemoryTrimmer
 import com.ubergeek42.WeechatAndroid.utils.findCause
 import com.ubergeek42.WeechatAndroid.utils.isAnyOf
 import com.ubergeek42.WeechatAndroid.utils.let
@@ -145,6 +146,8 @@ class WeechatActivity : AppCompatActivity(), CutePageChangeListener,
         private set
 
     private val toolbarController = ToolbarController(this).apply { observeLifecycle() }
+
+    init { attachDelayedMemoryTrimmer() }
 
     val notificationPermissionChecker = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> NotificationPermissionChecker(this)

@@ -3,6 +3,8 @@
 
 package com.ubergeek42.WeechatAndroid.service;
 
+import static androidx.preference.FontManager2Kt.createTypefaceOrNull;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -26,13 +28,10 @@ import androidx.preference.PrivateKeyPickerPreference;
 import androidx.preference.ThemeManager;
 
 import com.ubergeek42.WeechatAndroid.R;
-import com.ubergeek42.WeechatAndroid.Weechat;
 import com.ubergeek42.WeechatAndroid.media.Config;
 import com.ubergeek42.WeechatAndroid.relay.Buffer;
 import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.upload.UploadConfigKt;
-import com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt;
-import com.ubergeek42.WeechatAndroid.utils.Constants;
 import com.ubergeek42.WeechatAndroid.utils.History;
 import com.ubergeek42.WeechatAndroid.utils.MigratePreferences;
 import com.ubergeek42.WeechatAndroid.utils.ThemeFix;
@@ -41,7 +40,6 @@ import com.ubergeek42.cats.Cat;
 import com.ubergeek42.cats.CatD;
 import com.ubergeek42.cats.Kitty;
 import com.ubergeek42.cats.Root;
-import com.ubergeek42.weechat.Color;
 import com.ubergeek42.weechat.ColorScheme;
 import com.ubergeek42.weechat.relay.connection.HandshakeMethod;
 import com.ubergeek42.weechat.relay.connection.SSHConnection;
@@ -50,11 +48,14 @@ import com.ubergeek42.weechat.relay.connection.SSHServerKeyVerifier;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.ubergeek42.WeechatAndroid.utils.ApplicationContextKt.applicationContext;
 import static com.ubergeek42.WeechatAndroid.utils.Constants.*;
@@ -116,9 +117,14 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static int maxWidth;
     public static boolean encloseNick, dimDownNonHumanLines;
     public static @Nullable DateTimeFormatter dateFormat;
-    public static int align;
+
+    public enum Alignment { Left, Timestamp, PrefixLeft, PrefixRight }
+    public static Alignment align;
 
     public static float textSize, letterWidth;
+    public static String fontFeatureSettings;
+    public static float lineHeight = 1f;
+    public static float paragraphSpacing = 0f;
     public static TextPaint textPaint;
 
     public static boolean notificationEnable;
@@ -165,7 +171,7 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
         hideHiddenBuffers = p.getBoolean(PREF_HIDE_HIDDEN_BUFFERS, PREF_HIDE_HIDDEN_BUFFERS_D);
         optimizeTraffic = p.getBoolean(PREF_OPTIMIZE_TRAFFIC, PREF_OPTIMIZE_TRAFFIC_D);  // okay this is out of sync with onChanged stuff—used for the bell icon
         useGestureExclusionZone = p.getBoolean(PREF_USE_GESTURE_EXCLUSION_ZONE,
-                Constants.PREF_USE_GESTURE_EXCLUSION_ZONE_D);
+                PREF_USE_GESTURE_EXCLUSION_ZONE_D);
 
         // buffer-wide preferences
         filterLines = p.getBoolean(PREF_FILTER_LINES, PREF_FILTER_LINES_D);
@@ -368,7 +374,10 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
             case PREF_TEXT_SIZE:
-            case PREF_BUFFER_FONT:
+            case PREF_BUFFER_FONTS:
+            case PREF_FONT_FEATURE_SETTINGS:
+            case PREF_LINE_HEIGHT:
+            case PREF_PARAGRAPH_SPACING:
                 setTextSizeColorAndLetterWidth();
                 BufferList.onGlobalPreferencesChanged(false);
                 break;
@@ -412,25 +421,42 @@ public class P implements SharedPreferences.OnSharedPreferenceChangeListener{
     @MainThread private static void setAlignment() {
         String alignment = getString(PREF_PREFIX_ALIGN, PREF_PREFIX_ALIGN_D);
         switch (alignment) {
-            case "right":     align = Color.ALIGN_RIGHT; break;
-            case "left":      align = Color.ALIGN_LEFT; break;
-            case "timestamp": align = Color.ALIGN_TIMESTAMP; break;
-            default:          align = Color.ALIGN_NONE; break;
+            case "right":     align = Alignment.PrefixRight; break;
+            case "left":      align = Alignment.PrefixLeft; break;
+            case "timestamp": align = Alignment.Timestamp; break;
+            default:          align = Alignment.Left; break;
         }
     }
 
     @MainThread private static void setTextSizeColorAndLetterWidth() {
         textSize = Float.parseFloat(getString(PREF_TEXT_SIZE, PREF_TEXT_SIZE_D));
-        String bufferFont = p.getString(PREF_BUFFER_FONT, PREF_BUFFER_FONT_D);
+        fontFeatureSettings = getString(PREF_FONT_FEATURE_SETTINGS, PREF_FONT_FEATURE_SETTINGS_D);
+        lineHeight = Float.parseFloat(getString(PREF_LINE_HEIGHT, PREF_LINE_HEIGHT_D));
+        paragraphSpacing = Float.parseFloat(getString(PREF_PARAGRAPH_SPACING, PREF_PARAGRAPH_SPACING_D)) * _1dp;
 
-        Typeface typeface = Typeface.MONOSPACE;
-        try {typeface = Typeface.createFromFile(bufferFont);} catch (Exception ignored) {}
+        Typeface typeface = null;
+
+        try {
+            Set<String> bufferFonts = p.getStringSet(PREF_BUFFER_FONTS, PREF_BUFFER_FONTS_D);
+            if (bufferFonts != null && !bufferFonts.isEmpty()) {
+                typeface = createTypefaceOrNull(bufferFonts.stream().map(File::new).collect(Collectors.toList()));
+            }
+        } catch (Exception e) {
+            kitty.error("Could not load typeface", e);
+        }
+
+        if (typeface == null) {
+            typeface = Typeface.MONOSPACE;
+        }
 
         textPaint = new TextPaint();
         textPaint.setAntiAlias(true);
         textPaint.setTypeface(typeface);
         textPaint.setColor(0xFF000000 | ColorScheme.get().default_color[0]);
         textPaint.setTextSize(textSize * context.getResources().getDisplayMetrics().scaledDensity);
+        if (!TextUtils.isEmpty(fontFeatureSettings)) {
+            textPaint.setFontFeatureSettings(fontFeatureSettings);
+        }
 
         letterWidth = (textPaint.measureText("m"));
     }
