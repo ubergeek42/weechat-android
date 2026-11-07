@@ -91,11 +91,81 @@ enum class Target(
                                   putExtra(EXTRA_ALLOW_MULTIPLE, true)
                               }
     },
+
+    /**
+     * A Gallery app normally has an `<intent-filter>` with the action `PICK`
+     * and one or more supported MIME types. To request multiple types of media from such an app,
+     * we want to have the intent `type` of `"*\*"` and the extra `Intent.EXTRA_MIME_TYPES`
+     * with the array of the actual MIME types that we want.
+     *
+     * Note, this behavior might be *not* standard for `PICK`.
+     * However, it is mentioned in a note on `OPEN_DOCUMENT`, which says,¹
+     *
+     *   > Your intent **must** specify a MIME type and must declare the `CATEGORY_OPENABLE` category.
+     *   > If appropriate, you can specify more than one MIME type
+     *   > by adding an array of MIME types with the `EXTRA_MIME_TYPES` extra—
+     *   > if you do so, you must set the primary MIME type in `setType()` to `"*\*"`.
+     *
+     * Now, Android 17 (API 37) introduced a new intent, `PICK_CONTACTS`,
+     * which opens the new privacy-focused `ContactsPickerActivity`. Also,²
+     *
+     *   > For apps targeting Android 17 (API level 37) and higher, the system automatically upgrades
+     *   > the existing `Intent.ACTION_PICK` intent to use the new Contact Picker interface.
+     *
+     * What this really means is that this activity implements³ an `<intent-filter>`
+     * with the action `PICK`, *and* a higher `android:priority`, which works like this:⁴
+     *
+     *   > When an intent can be handled by multiple activities with different priorities,
+     *   > Android considers only those with higher priority values as potential targets for the intent.
+     *
+     * The end result is that on Android 17 `ContactsPickerActivity` hijacks all `PICK` intents
+     * with the type `"*\*"`, as this type matches all MIME types.
+     *
+     * I couldn't think of a pretty workaround for this. Some of the options are:
+     *
+     *   * Have a `type` with multiple MIME types, separated by either a space, `|` or `,`.
+     *     This is **highly** non-standard. However, it seems to work in some apps,
+     *     such as the Samsung gallery. Other apps, such as Photos, seem to be processing
+     *     only the first item in `type`, and ignoring `EXTRA_MIME_TYPES`.
+     *
+     *   * Create a chooser that excludes the contact picker.
+     *     While it works, the result of this choice is not remembered by the system—
+     *     there are no "Just once" or "Always" buttons.
+     *     We *could* remember the choice with the 3-argument `createChooser`,
+     *     but that requires a broadcast receiver, and a way of forgetting user's choice.
+     *
+     *       ```kt
+     *       Intent.createChooser(intent, null).apply {
+     *           val contactsComponent = ComponentName(
+     *               "com.android.contactspicker",
+     *               "com.android.contactspicker.ContactsPickerActivity"
+     *           )
+     *           putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(contactsComponent))
+     *       }
+     *       ```
+     *
+     *   * Check what app is used to only pick images, and use that.
+     *     We can do that by calling `packageManager.resolveActivity(imageIntent, ...)`.
+     *     However, this only works out of the box if the user has either a single app
+     *     that can handle the intent, which is not a realistic scenario,
+     *     or has made a choice to "Always" open a specific app.
+     *     If not, the result of that call will be `com.android.internal.app.ResolverActivity`.
+     *     Also, to get a meaningful result out of the `resolveActivity` call,
+     *     we'd need a `<queries>` block in the manifest.
+     *
+     * Even if not effective in all cases, the first of the three options seems to be a safe choice.
+     * As `ContentMedia` is a viable alternative and the recommended way to pick mixed media,
+     * I feel like it's not worth it to implement further fixes.
+     *
+     * ¹ https://developer.android.com/guide/components/intents-common#OpenFile
+     * ² https://developer.android.com/about/versions/17/features/contact-picker#backward-compatibility
+     * ³ https://android.googlesource.com/platform/packages/apps/ContactsPicker/+/refs/heads/android17-release/AndroidManifest.xml
+     * ⁴ https://developer.android.com/guide/topics/manifest/intent-filter-element
+     */
     MediaStoreMedia(1083, R.string.menu__upload_actions__mediastore_media,
                           Constants.PREF_PAPERCLIP_ACTION_MEDIASTORE_MEDIA) {
-        override val intent = Intent(Intent.ACTION_PICK,
-                                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
-                                  type = "*/*"
+        override val intent = Intent(Intent.ACTION_PICK).apply {
+                                  type = if (Build.VERSION.SDK_INT >= 37) "image/*|video/*" else "*/*"
                                   flags = DEFAULT_FLAGS
                                   putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "video/*"))
                                   putExtra(EXTRA_ALLOW_MULTIPLE, true)
