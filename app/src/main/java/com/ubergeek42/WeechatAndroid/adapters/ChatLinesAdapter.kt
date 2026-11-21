@@ -14,11 +14,13 @@
 package com.ubergeek42.WeechatAndroid.adapters
 
 import android.graphics.PorterDuff
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
@@ -38,6 +40,7 @@ import com.ubergeek42.WeechatAndroid.relay.LineSpec
 import com.ubergeek42.WeechatAndroid.relay.Lines
 import com.ubergeek42.WeechatAndroid.relay.MarkerLine
 import com.ubergeek42.WeechatAndroid.relay.SquiggleLine
+import com.ubergeek42.WeechatAndroid.relay.TITLE_LINE_POINTER
 import com.ubergeek42.WeechatAndroid.search.Search
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.upload.i
@@ -84,7 +87,7 @@ class ChatLinesAdapter @MainThread constructor(
     private inner class Row(view: LineView) : ViewHolder(view) {
         private val lineView = view.apply {
             setOnLongClickListener {
-                showCopyDialog(this, buffer?.pointer ?: -1L)
+                (tag as? Line)?.let { line -> context.showCopyDialog(line, buffer?.pointer ?: -1L) }
                 true
             }
 
@@ -122,9 +125,10 @@ class ChatLinesAdapter @MainThread constructor(
 
 
     private inner class HeaderRow(header: View) : ViewHolder(header) {
-        private val title: LineView = header.findViewById<LineView>(R.id.title).apply {
+        private val title: TextView = header.findViewById<TextView>(R.id.title).apply {
+            movementMethod = LinkMovementMethod.getInstance()
             setOnLongClickListener {
-                showCopyDialog(this, buffer?.pointer ?: -1)
+                title.context.showCopyDialog(title.text, buffer?.pointer ?: -1L, TITLE_LINE_POINTER)
                 true
             }
         }
@@ -141,7 +145,7 @@ class ChatLinesAdapter @MainThread constructor(
         }
 
         @MainThread fun update(line: HeaderLine) {
-            updateButton(line.status)
+            updateButton(line.linesStatus)
             updateTitle(line)
         }
 
@@ -160,12 +164,14 @@ class ChatLinesAdapter @MainThread constructor(
         // don't show the title when fetching lines and only the button is visible --
         // it just doesn't look good when new lines arrive
         @MainThread private fun updateTitle(line: HeaderLine) {
-            if (line.spannable.isEmpty() || (itemCount <= 1 && !line.status.ready())) {
+            if (line.titleSpanned.isEmpty() || (itemCount <= 1 && !line.linesStatus.ready())) {
                 title.visibility = View.GONE
             } else {
                 title.visibility = View.VISIBLE
                 title.updateMargins(bottom = if (button.visibility == View.GONE) P._4dp.i else 0)
-                title.setText(line)
+                title.paint.set(P.textPaint)
+                title.setTextColor(P.textPaint.color) // TextView sets color in onDraw
+                title.text = line.titleSpanned
                 title.tag = line
             }
         }
@@ -335,10 +341,7 @@ class ChatLinesAdapter @MainThread constructor(
         }
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return if (newItemPosition == 0) {
-                // Header line, always present
-                oldLines[oldItemPosition] === newLines[newItemPosition]
-            } else if (!sameStyle) {
+            return if (!sameStyle) {
                 false
             } else if (diffLineContents) {
                 oldLines[oldItemPosition].visuallyEqualsTo(newLines[newItemPosition])

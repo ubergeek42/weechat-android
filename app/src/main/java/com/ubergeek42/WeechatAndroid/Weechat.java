@@ -14,6 +14,7 @@ import android.os.StrictMode;
 import com.ubergeek42.WeechatAndroid.media.CachePersist;
 import com.ubergeek42.WeechatAndroid.notifications.IconsKt;
 import com.ubergeek42.WeechatAndroid.notifications.StatisticsKt;
+import com.ubergeek42.WeechatAndroid.relay.BufferList;
 import com.ubergeek42.WeechatAndroid.service.Events;
 import com.ubergeek42.WeechatAndroid.notifications.NotificatorKt;
 import com.ubergeek42.WeechatAndroid.service.P;
@@ -69,6 +70,7 @@ public class Weechat extends Application {
             case TRIM_MEMORY_RUNNING_LOW:
             case TRIM_MEMORY_RUNNING_MODERATE:
                 IconsKt.clearMemoryIconCache();
+                BufferList.clearPrecomputedLayoutsEtcForAllBuffers();
                 break;
             case TRIM_MEMORY_UI_HIDDEN:
                 break;

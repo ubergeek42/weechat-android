@@ -660,16 +660,32 @@
     <string name="pref__look_n_feel__timestamp_format_summary">%s (par défaut&#8239;: HH:mm:ss)</string>
     <string name="error__pref__invalid_timestamp_format">Format de date/heure invalide</string>
 
-    <string name="pref__look_n_feel__font">
-        Police des tampons</string>
+    <string name="pref__look_n_feel__typeface">
+        Police d’écriture</string>
     <string name="pref__FontPreference__default">Par défaut</string>
     <string name="pref__FontPreference__import_button">Importer</string>
     <string name="pref__FontPreference__imported">Importée&#8239;: %s</string>
+    <string name="pref__FontPreference__imported_with_errors">
+        Importée&nbsp;: %1$s. Des erreurs sont survenues lors de l’importation de certaines polices</string>
+    <string name="pref__FontPreference__failed_to_import">
+        Échec de l’importation des polices</string>
 
-    <string name="pref__FontPreferenceHelp__summary">
-        Les polices non-monospaces peuvent poser des problèmes d’alignement.
-        Importez des polices via la boîte de dialogue
-        ou déposez-les dans l’un de ces dossiers&#8239;:%1$s</string>
+    <!-- overridden in -v29 & -v35 -->
+    <string name="pref__FontPreferenceHelp__summary"><![CDATA[
+        Les familles de polices et les polices variables ne sont pas prises en charge.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Typeface">En savoir plus (en anglais)</a>
+
+        <br><br>Importez des polices depuis la boîte de dialogue,
+        ou placez les fichiers dans l’un des dossiers suivants&nbsp;:%1$s
+    ]]></string>
+
+    <!-- This is a very low level option that may be best left untranslated.
+         See https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-feature-settings -->
+    <string name="pref__look_n_feel__font_feature_settings">Font feature settings</string>
+
+    <string name="pref__look_n_feel__line_height">Hauteur de ligne</string>
+
+    <string name="pref__look_n_feel__paragraph_spacing">Espacement des paragraphes</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->

@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="pref__theme__theme__system">Устанавливается системой</string>
+
+    <!-- overridden in -v35 -->
+    <string name="pref__FontPreferenceHelp__summary"><![CDATA[
+        Поддерживаются только статические шрифты.
+        Шрифты с одинаковым первым словом в имени файла (<tt>^\\w+</tt>)
+        будут объединены в одно семейство.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Typeface">Узнать больше</a>
+
+        <br><br>Импортируйте шрифты через диалог выбора
+        или поместите их в одну из этих папок:%1$s
+    ]]></string>
 </resources>

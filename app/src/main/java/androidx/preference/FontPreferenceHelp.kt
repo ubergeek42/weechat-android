@@ -10,7 +10,7 @@ import com.ubergeek42.WeechatAndroid.R
 class FontPreferenceHelp(context: Context?, attrs: AttributeSet?) : HelpPreference(context, attrs) {
     override fun getSummary(): CharSequence {
         val indent = "<br>&nbsp;&nbsp;&nbsp;&nbsp;"
-        val directories = FontManager.getFontSearchDirectories(context)
+        val directories = getFontSearchDirectories(context)
         val message = context.getString(R.string.pref__FontPreferenceHelp__summary,
                 indent + directories.joinToString(indent))
 

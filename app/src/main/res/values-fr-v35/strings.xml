@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pref__FontPreferenceHelp__summary"><![CDATA[
+        Les polices statiques et variables sont prises en charge.
+        Les fichiers de polices commençant par le même mot (<tt>^\\w+</tt>) seront regroupés dans une même famille.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Typeface">En savoir plus (en anglais)</a>
+
+        <br><br>Importez des polices depuis la boîte de dialogue,
+        ou placez les fichiers dans l’un des dossiers suivants&nbsp;:%1$s
+    ]]></string>
+</resources>
