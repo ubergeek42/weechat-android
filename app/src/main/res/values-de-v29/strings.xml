@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="pref__theme__theme__system">Systemstandardeinstellung</string>
+
+    <!-- overridden in -v35 -->
+    <string name="pref__FontPreferenceHelp__summary"><![CDATA[
+        Nur statische Schriftarten werden ordnungsgemäß unterstützt.
+        Schriftdateien, die mit demselben Wort beginnen (<tt>^\\w+</tt>) werden zu einer Familie zusammengefasst.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Typeface">Erfahre mehr</a>
+
+        <br><br>Importiert Schriftarten über das Dialogfenster,
+        oder legen diese an einem der folgenden Speicherorte ab:%1$s
+    ]]></string>
 </resources>

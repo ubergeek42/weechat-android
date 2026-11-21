@@ -670,9 +670,31 @@
     <string name="pref__look_n_feel__timestamp_format_summary">%s (Standardwert: HH:mm:ss)</string>
     <string name="error__pref__invalid_timestamp_format">Ungültiges Format für Zeitstempel</string>
 
+    <string name="pref__look_n_feel__typeface">
+        Schriftbild</string>
     <string name="pref__FontPreference__default">Standard</string>
     <string name="pref__FontPreference__import_button">Importieren</string>
     <string name="pref__FontPreference__imported">Importiert: %s</string>
+    <string name="pref__FontPreference__imported_with_errors">
+        Importiert: %1$s. Beim Importieren einiger Schriftarten sind Fehler aufgetreten</string>
+    <string name="pref__FontPreference__failed_to_import">
+        Schriftarten konnten nicht importiert werden</string>
+
+    <string name="pref__FontPreferenceHelp__summary"><![CDATA[
+        Schriftfamilien und variable Schriftarten werden nicht unterstützt.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Typeface">Erfahre mehr</a>
+
+        <br><br>Importiert Schriftarten über das Dialogfenster,
+        oder legen diese an einem der folgenden Speicherorte ab:%1$s
+    ]]></string>
+
+    <!-- This is a very low level option that may be best left untranslated.
+     See https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-feature-settings -->
+    <string name="pref__look_n_feel__font_feature_settings">Zeichensatz-Einstellungen</string>
+
+    <string name="pref__look_n_feel__line_height">Zeilenhöhe</string>
+
+    <string name="pref__look_n_feel__paragraph_spacing">Absatzabstand</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->
