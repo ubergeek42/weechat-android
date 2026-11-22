@@ -146,6 +146,22 @@
 #   https://issuetracker.google.com/issues/195752905
 -dontwarn com.google.errorprone.annotations.Immutable
 
+# ~*~*~*~ Notes ~*~*~*~
+
+# To tell why a method is not inlined, it is possible to add a block like the one below,
+# and run the following command:
+#     ./gradlew :app:assembleDev -Dcom.android.tools.r8.experimental.enablewhyareyounotinlining=1 --info
+#
+# -whyareyounotinlining class kotlin.text.StringsKt** {
+#     public static *** startsWith*(...);
+# }
+
+# To force a method to be inlined, the following *unsupported* block can be utilized.
+#
+# -alwaysinline class kotlin.text.StringsKt** {
+#     public static *** startsWith*(...);
+# }
+
 # ~*~*~*~ Historical rules, left here for lamenting and general amusement ~*~*~*~
 
 # Looks like we aren't getting warnings anymore!
