@@ -654,16 +654,32 @@
     <string name="pref__look_n_feel__timestamp_format_summary">%s (predefinição: HH:mm:ss)</string>
     <string name="error__pref__invalid_timestamp_format">Formato da hora inválido</string>
 
-    <string name="pref__look_n_feel__font">
-        Tipo de letra dos buffers</string>
+    <string name="pref__look_n_feel__typeface">
+        Tipo de letra</string>
     <string name="pref__FontPreference__default">Predefinido</string>
     <string name="pref__FontPreference__import_button">Importar</string>
     <string name="pref__FontPreference__imported">Importado: %s</string>
+    <string name="pref__FontPreference__imported_with_errors">
+        Importado: %1$s. Ocorreram erros ao importar alguns dos tipos de letra</string>
+    <string name="pref__FontPreference__failed_to_import">
+        Falha ao importar os tipos de letra</string>
 
-    <string name="pref__FontPreferenceHelp__summary">
-        Tipos de letra que não sejam monoespaçados não funcionam bem com o alinhamento.
-        Importe tipos de letra a partir da caixa de diálogo
-        ou coloque-os numa das seguintes localizações:%1$s</string>
+    <!-- overridden in -v29 & -v35 -->
+    <string name="pref__FontPreferenceHelp__summary"><![CDATA[
+        Famílias de tipos de letra e tipos de letra variáveis não são suportados.
+        <a href="https://github.com/ubergeek42/weechat-android/wiki/Typeface">Saber mais (em inglês)</a>
+
+        <br><br>Importe tipos de letra a partir da caixa de diálogo
+        ou coloque-os numa das seguintes localizações:%1$s
+    ]]></string>
+
+    <!-- This is a very low level option that may be best left untranslated.
+         See https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-feature-settings -->
+    <string name="pref__look_n_feel__font_feature_settings">Font feature settings</string>
+
+    <string name="pref__look_n_feel__line_height">Altura da linha</string>
+
+    <string name="pref__look_n_feel__paragraph_spacing">Espaçamento entre parágrafos</string>
 
     <!-- ####################################################################################### -->
     <!-- ######################################## theme ######################################## -->
