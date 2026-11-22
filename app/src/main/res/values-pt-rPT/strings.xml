@@ -396,7 +396,7 @@
     <string name="pref__ClearCertPreference__0_entries">Nenhum certificado fidedigno</string>
     <string name="pref__ClearCertPreference__1_entries">Um certificado fidedigno</string>
     <plurals name="pref__ClearCertPreference__n_entries">
-        <item quantity="one">Um certificado fidedigno</item>
+        <item quantity="one">%s certificado fidedigno</item>
         <item quantity="other">%s certificados fidedignos</item>
     </plurals>
     <string name="pref__ClearCertPreference__prompt">Limpar certificados?</string>
