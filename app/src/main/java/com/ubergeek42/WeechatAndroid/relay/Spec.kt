@@ -18,10 +18,11 @@ import kotlin.jvm.JvmInline
 
 
 // https://weechat.org/files/doc/stable/weechat_plugin_api.en.html#_buffer_set
+// Weechat's highlight notification level includes PMs with the mention highlights
 @Suppress("unused")
 enum class Notify(val value: Int) {
     NeverAddToHotlist(0),
-    AddHighlightsOnly(1),
+    AddHighlightAndPms(1),
     AddHighlightsAndMessages(2),
     AddAllMessages(3);
 
