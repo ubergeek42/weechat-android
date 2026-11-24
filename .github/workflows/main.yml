@@ -186,6 +186,8 @@ jobs:
         uses: Gottox/irc-message-action@main
         with:
           nickname: wa-github
+          server: irc.libera.chat
+          sasl_password: ${{secrets.LIBERA_IDENTIFY_PASSWORD}}
           channel: '#weechat-android'
           message: |-
             #${{github.run_number}} (${{steps.prepare.outputs.sha7}} @ ${{steps.prepare.outputs.short-ref}} by ${{github.actor}}): ${{steps.prepare.outputs.status}}
