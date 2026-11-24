@@ -3,6 +3,7 @@ package com.ubergeek42.weechat.relay.connection
 import com.neovisionaries.ws.client.WebSocket
 import com.neovisionaries.ws.client.WebSocketAdapter
 import com.neovisionaries.ws.client.WebSocketException
+import com.neovisionaries.ws.client.WebSocketExtension
 import com.neovisionaries.ws.client.WebSocketFactory
 import com.neovisionaries.ws.client.WebSocketFrame
 import com.ubergeek42.weechat.SslAxolotl
@@ -71,8 +72,9 @@ class WebSocketConnection(
                 .setVerifyHostname(false)
                 .setConnectionTimeout(RelayConnection.CONNECTION_TIMEOUT)
                 .setServerName(hostname)  // for SNI
-                .createSocket(uri)
+            .createSocket(uri);
 
+        webSocket.addExtension(WebSocketExtension.PERMESSAGE_DEFLATE)
         webSocket.setDirectTextMessage(true);
         webSocket.addHeader("Authorization", "Basic " + Base64.encode("plain:$pass".toByteArray()))
         webSocket.addListener(Listener())
