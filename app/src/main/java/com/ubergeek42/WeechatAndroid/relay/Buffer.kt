@@ -257,7 +257,7 @@ class Buffer @WorkerThread constructor(
                     || type == BufferSpec.Type.HardHidden
                     || (P.filterLines && !line.isVisible)
                     || notify == Notify.NeverAddToHotlist
-                    || (notify == Notify.AddHighlightsOnly && !notifyHighlight)) {
+                    || (notify == Notify.AddHighlightsAndPms && !(notifyHighlight || notifyPm))) {
                 if (notifyHighlight) { readHighlights++ }
                 else if (notifyPmOrMessage) { readUnreads++ }
             } else {
