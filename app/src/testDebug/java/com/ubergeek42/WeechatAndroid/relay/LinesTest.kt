@@ -3,19 +3,24 @@ package com.ubergeek42.WeechatAndroid.relay
 import androidx.test.core.app.ApplicationProvider
 import com.ubergeek42.WeechatAndroid.service.P
 import com.ubergeek42.WeechatAndroid.utils.applicationContext
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.function.Predicate
 
 
-fun makeLine(pointer: Long, message: String = pointer.toString(), visible: Boolean = true) =
+fun makeLine(pointer: Long, message: String = pointer.toString(), visible: Boolean = true, timestamp: Long = 0) =
     Line(
         pointer = pointer,
         type = LineSpec.Type.IncomingMessage,
-        timestamp = 0,
+        timestamp = timestamp,
         rawPrefix = "prefix",
         rawMessage = message,
         nick = null,
@@ -33,9 +38,19 @@ fun isSquiggle() = Predicate<Line> { it is SquiggleLine }
 
 fun isReadMarker() = Predicate<Line> { it is MarkerLine }
 
+fun startOf(date: LocalDate) = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+val JAN_1_2026 = startOf(LocalDate.of(2026, 1, 1))
+val JAN_2_2026 = startOf(LocalDate.of(2026, 1, 2))
+val JAN_3_2026 = startOf(LocalDate.of(2026, 1, 3))
+
+fun isDayChange(day: Long) = Predicate<Line> { it.type == LineSpec.Type.Other && it.timestamp == day }
+
 fun Lines.assertConformsTo(vararg predicates: Predicate<Line>) {
-    getCopyWithoutHeader().zip(predicates).forEachIndexed { index, (line, predicate) ->
-        if (!predicate.test(line)) throw AssertionError("Failed at index $index. Lines: ${getCopyWithoutHeader().asString()}")
+    val lines = getCopyWithoutHeader()
+    if (lines.size != predicates.size) throw AssertionError("Expected ${predicates.size} lines. Lines: ${lines.asString()}")
+    lines.zip(predicates).forEachIndexed { index, (line, predicate) ->
+        if (!predicate.test(line)) throw AssertionError("Failed at index $index. Lines: ${lines.asString()}")
     }
 }
 
@@ -64,6 +79,157 @@ class LinesTest {
         applicationContext = ApplicationProvider.getApplicationContext()
         P.init(applicationContext)
         P.loadConnectionPreferences()
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Test fun `Day change markers appear before the first line of each day`() {
+        val lines = Lines().apply { displayDayChange = true }
+        lines.addLast(makeLine(0, timestamp = JAN_1_2026))
+        lines.addLast(makeLine(1, timestamp = JAN_1_2026))
+        lines.addLast(makeLine(2, timestamp = JAN_2_2026))
+
+        lines.assertFilteredConformsTo(
+            isDayChange(JAN_1_2026),
+            hasPointer(0),
+            hasPointer(1),
+            isDayChange(JAN_2_2026),
+            hasPointer(2),
+        )
+    }
+
+    @Test fun `Day changes for invisible lines are not shown when filtered`() {
+        val lines = Lines().apply { displayDayChange = true }
+        lines.addLast(makeLine(0, timestamp = JAN_1_2026))
+        lines.addLast(makeLine(1, timestamp = JAN_2_2026, visible = false))
+        lines.addLast(makeLine(2, timestamp = JAN_3_2026))
+
+        lines.assertUnfilteredConformsTo(
+            isDayChange(JAN_1_2026),
+            hasPointer(0),
+            isDayChange(JAN_2_2026),
+            hasPointer(1),
+            isDayChange(JAN_3_2026),
+            hasPointer(2),
+        )
+
+        lines.assertFilteredConformsTo(
+            isDayChange(JAN_1_2026),
+            hasPointer(0),
+            isDayChange(JAN_3_2026),
+            hasPointer(2),
+        )
+    }
+
+    @Test fun `Day changes can be turned on and off`() {
+        val lines = Lines()
+        lines.addLast(makeLine(0, timestamp = JAN_1_2026))
+        lines.addLast(makeLine(1, timestamp = JAN_2_2026))
+
+        lines.assertUnfilteredConformsTo(
+            hasPointer(0),
+            hasPointer(1),
+        )
+
+        lines.displayDayChange = true
+
+        lines.assertUnfilteredConformsTo(
+            isDayChange(JAN_1_2026),
+            hasPointer(0),
+            isDayChange(JAN_2_2026),
+            hasPointer(1),
+        )
+
+        lines.displayDayChange = false
+
+        lines.assertUnfilteredConformsTo(
+            hasPointer(0),
+            hasPointer(1),
+        )
+    }
+
+    @Test fun `Day changes are updated when a line is added`() {
+        val lines = Lines().apply { displayDayChange = true }
+        lines.addLast(makeLine(0, timestamp = JAN_1_2026))
+
+        lines.assertUnfilteredConformsTo(
+            isDayChange(JAN_1_2026),
+            hasPointer(0),
+        )
+
+        lines.addLast(makeLine(1, timestamp = JAN_2_2026))
+
+        lines.assertUnfilteredConformsTo(
+            isDayChange(JAN_1_2026),
+            hasPointer(0),
+            isDayChange(JAN_2_2026),
+            hasPointer(1),
+        )
+    }
+
+    @Test fun `Day changes are updated when a line is replaced`() {
+        val lines = Lines().apply { displayDayChange = true }
+        lines.addLast(makeLine(0, timestamp = JAN_1_2026))
+        lines.addLast(makeLine(1, timestamp = JAN_2_2026))
+
+        lines.assertFilteredConformsTo(
+            isDayChange(JAN_1_2026),
+            hasPointer(0),
+            isDayChange(JAN_2_2026),
+            hasPointer(1),
+        )
+
+        lines.replaceLine(makeLine(1, timestamp = JAN_2_2026, visible = false))
+
+        lines.assertFilteredConformsTo(
+            isDayChange(JAN_1_2026),
+            hasPointer(0)
+        )
+    }
+
+    @Test fun `Read marker comes before the day change of the next line`() {
+        val lines = Lines().apply { displayDayChange = true }
+        lines.addLast(makeLine(0, timestamp = JAN_1_2026))
+        lines.moveReadMarkerToEnd()
+        lines.addLast(makeLine(1, timestamp = JAN_2_2026))
+
+        lines.assertFilteredConformsTo(
+            isDayChange(JAN_1_2026),
+            hasPointer(0),
+            isReadMarker(),
+            isDayChange(JAN_2_2026),
+            hasPointer(1),
+        )
+    }
+
+    @Test fun `Read marker comes after the last line`() {
+        val lines = Lines().apply { displayDayChange = true }
+        lines.addLast(makeLine(0, timestamp = JAN_1_2026))
+        lines.addLast(makeLine(1, timestamp = JAN_2_2026))
+        lines.moveReadMarkerToEnd()
+
+        lines.assertFilteredConformsTo(
+            isDayChange(JAN_1_2026),
+            hasPointer(0),
+            isDayChange(JAN_2_2026),
+            hasPointer(1),
+            isReadMarker(),
+        )
+    }
+
+    @Test fun `Squiggle line comes before the day change of the next line`() {
+        val lines = Lines().apply { displayDayChange = true }
+        lines.addLast(makeLine(0, timestamp = JAN_1_2026))
+        lines.updateLastLineInfo(lastPointerServer = 1, lastVisiblePointerServer = 1)
+        lines.addLast(makeLine(2, timestamp = JAN_2_2026))
+
+        lines.assertFilteredConformsTo(
+            isDayChange(JAN_1_2026),
+            hasPointer(0),
+            isSquiggle(),
+            isDayChange(JAN_2_2026),
+            hasPointer(2),
+        )
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

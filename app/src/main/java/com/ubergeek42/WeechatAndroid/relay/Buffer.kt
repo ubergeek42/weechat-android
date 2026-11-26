@@ -26,6 +26,8 @@ class Buffer @WorkerThread constructor(
     @JvmField var shortName: String = ""
     @JvmField var hidden: Boolean = false
     @JvmField var type = BufferSpec.Type.Other
+    var displayDayChange: Boolean = false
+        get() = field && OptionsSpec.dayChange
 
     private var notify: Notify = Notify.default
 
@@ -39,6 +41,7 @@ class Buffer @WorkerThread constructor(
         internal var updateHidden = false
         internal var updateType = false
         internal var updateNotifyLevel = false
+        internal var updateDayChange = false
 
         var number: Int by updatable(::updateNumber, this@Buffer::number)
         var fullName: String by updatable(::updateFullName, this@Buffer::fullName)
@@ -47,6 +50,7 @@ class Buffer @WorkerThread constructor(
         var hidden: Boolean by updatable(::updateHidden)
         var type: BufferSpec.Type by updatable(::updateType)
         var notify: Notify? by updatable(::updateNotifyLevel)
+        var displayDayChange: Boolean by updatable(::updateDayChange)
     }
 
     fun update(silently: Boolean = false, block: Updater.() -> Unit) {
@@ -86,6 +90,12 @@ class Buffer @WorkerThread constructor(
         if (updater.updateNotifyLevel) notify = updater.notify ?: Notify.default
         if (updater.updateHidden) hidden = updater.hidden
         if (updater.updateType) type = updater.type
+        if (updater.updateDayChange) {
+            synchronized(this) {
+                displayDayChange = updater.displayDayChange
+                lines.displayDayChange = displayDayChange
+            }
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +117,10 @@ class Buffer @WorkerThread constructor(
     private var nicks: Nicks = Nicks()
 
     fun copyOldDataFrom(buffer: Buffer) {
-        lines = buffer.lines.apply { status = Lines.Status.Init }
+        lines = buffer.lines.apply {
+            status = Lines.Status.Init
+            displayDayChange = this@Buffer.displayDayChange
+        }
         nicks = buffer.nicks.apply { status = Nicks.Status.Init }
     }
 
@@ -231,7 +244,7 @@ class Buffer @WorkerThread constructor(
         synchronized(this) {
             lines.replaceLines(newLines)
         }
-   }
+    }
 
     @WorkerThread fun replaceLine(line: Line) {
         if (bufferEyes.isNotEmpty()) line.ensurePrecomputedLayout()
@@ -393,6 +406,7 @@ class Buffer @WorkerThread constructor(
             lines = Lines().apply {
                 status = Lines.Status.EverythingFetched
                 title = lines.title
+                displayDayChange = this@Buffer.displayDayChange
             }
             resetUnreadsAndHighlights()
         }
