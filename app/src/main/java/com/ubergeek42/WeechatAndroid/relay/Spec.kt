@@ -22,7 +22,7 @@ import kotlin.jvm.JvmInline
 @Suppress("unused")
 enum class Notify(val value: Int) {
     NeverAddToHotlist(0),
-    AddHighlightAndPms(1),
+    AddHighlightsAndPms(1),
     AddHighlightsAndMessages(2),
     AddAllMessages(3);
 
